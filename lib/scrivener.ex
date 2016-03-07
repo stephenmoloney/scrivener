@@ -97,7 +97,6 @@ defmodule Scrivener do
   ## Passing a list of entries to the `paginate/2` function
 
       MyApp.Repo.all(MyApp.Model)
-      |> where([m], m.field == "value")
       |> Scrivener.paginate(config)
   """
   @spec paginate(Ecto.Query.t | list, Scrivener.Config.t) :: Scrivener.Page.t
