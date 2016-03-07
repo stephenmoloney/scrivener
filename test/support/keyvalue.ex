@@ -7,7 +7,11 @@ defmodule Scrivener.KeyValue do
     field :value, :string
   end
 
-  def zero(query) do
-    query |> where([p], p.value == "0")
+  def zero(__MODULE__) do
+    __MODULE__ |> where([p], p.value == "0")
   end
+  def zero(entries) do
+    entries |> Enum.filter(&(&1.value == "0"))
+  end
+
 end

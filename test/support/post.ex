@@ -12,11 +12,20 @@ defmodule Scrivener.Post do
     timestamps
   end
 
-  def published(query) do
-    query |> where([p], p.published == true)
+
+  def published(__MODULE__) do
+    __MODULE__ |> where([p], p.published == true)
+  end
+  def published(entries) when is_list(entries) do
+    entries |> Enum.filter(&(&1.published == true))
   end
 
-  def unpublished(query) do
-    query |> where([p], p.published == false)
+
+  def unpublished(__MODULE__) do
+    __MODULE__ |> where([p], p.published == false)
   end
+  def unpublished(entries) when is_list(entries) do
+    entries |> Enum.filter(&(&1.published == false))
+  end
+
 end

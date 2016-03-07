@@ -72,9 +72,9 @@ defmodule Scrivener do
     quote do
       @scrivener_defaults unquote(opts)
 
-      @spec paginate(Ecto.Query.t, map | Keyword.t) :: Scrivener.Page.t
-      def paginate(query, options \\ []) do
-        Scrivener.paginate(__MODULE__, @scrivener_defaults, query, options)
+      @spec paginate(Ecto.Query.t | list, map | Keyword.t) :: Scrivener.Page.t
+      def paginate(query_or_entries, options \\ []) do
+        Scrivener.paginate(__MODULE__, @scrivener_defaults, query_or_entries, options)
       end
     end
   end
@@ -88,18 +88,37 @@ defmodule Scrivener do
         repo: MyApp.Repo
       }
 
+  ## Passing a query to the `paginate/2` functions
+
       MyApp.Model
       |> where([m], m.field == "value")
       |> Scrivener.paginate(config)
+
+  ## Passing a list of entries to the `paginate/2` function
+
+      MyApp.Repo.all(MyApp.Model)
+      |> where([m], m.field == "value")
+      |> Scrivener.paginate(config)
   """
-  @spec paginate(Ecto.Query.t, Scrivener.Config.t) :: Scrivener.Page.t
-  def paginate(query, %Config{page_size: page_size, page_number: page_number, repo: repo}) do
+  @spec paginate(Ecto.Query.t | list, Scrivener.Config.t) :: Scrivener.Page.t
+  def paginate(%Ecto.Query{} = query, %Config{page_size: page_size, page_number: page_number, repo: repo}) do
     total_entries = total_entries(query, repo)
 
     %Page{
       page_size: page_size,
       page_number: page_number,
       entries: entries(query, repo, page_number, page_size),
+      total_entries: total_entries,
+      total_pages: total_pages(total_entries, page_size)
+    }
+  end
+  def paginate(entries, %Config{page_size: page_size, page_number: page_number, repo: repo}) do
+    total_entries = length(entries)
+
+    %Page{
+      page_size: page_size,
+      page_number: page_number,
+      entries: entries(entries, repo, page_number, page_size),
       total_entries: total_entries,
       total_pages: total_pages(total_entries, page_size)
     }
@@ -140,7 +159,7 @@ defmodule Scrivener do
     end
   end
 
-  defp entries(query, repo, page_number, page_size) do
+  defp entries(%Ecto.Query{} = query, repo, page_number, page_size) do
     offset = page_size * (page_number - 1)
 
     query
@@ -148,6 +167,11 @@ defmodule Scrivener do
     |> offset([_], ^offset)
     |> repo.all
   end
+  defp entries(entries, repo, page_number, page_size) do
+    offset = page_size * (page_number - 1)
+    Enum.slice(entries, offset, page_size)
+  end
+
 
   defp total_entries(query, repo) do
     stripped_query = query

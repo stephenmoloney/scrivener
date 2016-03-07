@@ -38,6 +38,7 @@ defmodule ScrivenerTest do
   end
 
   describe "paginate" do
+
     it "uses defaults from the repo" do
       posts = create_posts
 
@@ -140,5 +141,89 @@ defmodule ScrivenerTest do
 
       assert page.total_entries == 7
     end
+
+
+
+    # Testing for direct entries rather than queries
+
+    it "uses defaults from the repo for list of entries" do
+      posts = create_posts
+
+      page = posts
+      |> Post.published
+      |> Scrivener.Repo.paginate
+
+      assert page.page_size == 5
+      assert page.page_number == 1
+      assert page.entries == Enum.take(posts, 5)
+      assert page.total_entries == 6
+      assert page.total_pages == 2
+    end
+
+
+    it "can be provided the current page and page size as a params map for a list of entries" do
+      posts = create_posts
+
+      page = posts
+      |> Post.published
+      |> Scrivener.Repo.paginate(%{"page" => "2", "page_size" => "3"})
+
+      assert page.page_size == 3
+      assert page.page_number == 2
+      assert page.entries == Enum.drop(posts, 3)
+      assert page.total_pages == 2
+    end
+
+    it "can be provided the current page and page size as options for a list of entries" do
+      posts = create_posts
+
+      page = posts
+      |> Post.published
+      |> Scrivener.Repo.paginate(page: 2, page_size: 3)
+
+      assert page.page_size == 3
+      assert page.page_number == 2
+      assert page.entries == Enum.drop(posts, 3)
+      assert page.total_pages == 2
+    end
+
+    it "will respect the max_page_size configuration for a list of entries" do
+      page = Scrivener.Repo.all(Post)
+      |> Post.published
+      |> Scrivener.Repo.paginate(%{"page" => "1", "page_size" => "20"})
+
+      assert page.page_size == 10
+    end
+
+    it "can be provided a Scrivener.Config directly for a list of entries" do
+      posts = create_posts
+
+      config = %Scrivener.Config{
+        page_number: 2,
+        page_size: 4,
+        repo: Scrivener.Repo
+      }
+
+      page = posts
+      |> Post.published
+      |> Scrivener.paginate(config)
+
+      assert page.page_size == 4
+      assert page.page_number == 2
+      assert page.entries == Enum.drop(posts, 4)
+      assert page.total_pages == 2
+    end
+
+    it "can be used on a table with any primary key for a list of entries" do
+      create_key_values
+
+      page = Scrivener.Repo.all(KeyValue)
+      |> KeyValue.zero
+      |> Scrivener.Repo.paginate(page_size: 2)
+
+      assert page.total_entries == 5
+      assert page.total_pages == 3
+    end
+
   end
 end
