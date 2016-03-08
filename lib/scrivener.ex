@@ -166,7 +166,7 @@ defmodule Scrivener do
     |> offset([_], ^offset)
     |> repo.all
   end
-  defp entries(entries, repo, page_number, page_size) do
+  defp entries(entries, _repo, page_number, page_size) do
     offset = page_size * (page_number - 1)
     Enum.slice(entries, offset, page_size)
   end
