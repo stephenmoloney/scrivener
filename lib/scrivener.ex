@@ -73,7 +73,7 @@ defmodule Scrivener do
       @scrivener_defaults unquote(opts)
 
       @spec paginate(Ecto.Query.t, map | Keyword.t) :: Scrivener.Page.t
-      def paginate(%Ecto.Query{} = query, options) do
+      def paginate(%Ecto.Query{} = query, options \\ []) do
         Scrivener.paginate(__MODULE__, @scrivener_defaults, query, options)
       end
 
