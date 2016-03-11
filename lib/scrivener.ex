@@ -76,6 +76,11 @@ defmodule Scrivener do
       def paginate(query, options \\ []) do
         Scrivener.paginate(__MODULE__, @scrivener_defaults, query, options)
       end
+
+      @spec scrivener_config() :: %Scrivener.Config{}
+      def scrivener_config() do
+         Config.new(__MODULE__, @scrivener_defaults, [])
+      end
     end
   end
 
